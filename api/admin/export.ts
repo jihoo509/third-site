@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const { GH_TOKEN, GH_REPO_FULLNAME, ADMIN_TOKEN } = process.env;
 
