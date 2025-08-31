@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 import { PrivacyPolicyDialog } from './PrivacyPolicyDialog';
+import UtmHiddenFields from './UtmHiddenFields'; // ✨ UTM 숨김필드
 
 interface OnlineAnalysisFormProps {
   title?: string;
@@ -48,11 +49,14 @@ export function OnlineAnalysisForm({ title }: OnlineAnalysisFormProps) {
       agreedToTerms: false,
     });
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => { // ✨ 타입 명시
     event.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
-    
+
+    // ✨ 폼 안의 숨김 UTM 필드까지 모두 수집
+    const formElements = Object.fromEntries(new FormData(event.currentTarget).entries());
+
     const now = new Date();
     const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
 
@@ -66,6 +70,9 @@ export function OnlineAnalysisForm({ title }: OnlineAnalysisFormProps) {
         rrnBack: formData.birthDateSecond.trim(),
         gender: formData.gender as '남' | '여' | '',
         requestedAt: kstDate.toISOString(),
+
+        // ✨ UTM/landing/referrer/first_utm/last_utm 등 포함
+        ...formElements,
       };
 
       const res = await fetch('/api/submit', {
@@ -108,13 +115,16 @@ export function OnlineAnalysisForm({ title }: OnlineAnalysisFormProps) {
           <p className="text-white text-[22px] md:text-2xl font-extrabold tracking-tight drop-shadow-[0_1px_10px_rgba(0,0,0,.30)]">
             한 눈에 비교 분석할 수 있는
           </p>
-          <p className="text-[22px] md:text-2xl font-black bg-gradient-to-b from-[#FFB648] to-[#FF7A3D] bg-clip-text text-transparent drop-shadow-[0_1px_12px_rgba(255,152,64,.28)]">
+        <p className="text-[22px] md:text-2xl font-black bg-gradient-to-b from-[#FFB648] to-[#FF7A3D] bg-clip-text text-transparent drop-shadow-[0_1px_12px_rgba(255,152,64,.28)]">
             이미지 파일을 보내드립니다.
           </p>
           {title && <p className="mt-2 text-white/85 text-[13px] md:text-sm">{title}</p>}
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-3">
+          {/* ✨ 숨김 UTM 필드 */}
+          <UtmHiddenFields />
+
           <div className="space-y-2">
             <label className="text-white text-base block">이름</label>
             <Input
